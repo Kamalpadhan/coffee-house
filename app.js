@@ -1,41 +1,38 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+// Full Documentation - https://docs.turbo360.co
+const vertex = require('vertex360')({ site_id: process.env.TURBO_APP_ID })
+const express = require('express')
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const app = express() // initialize app
 
-var app = express();
+/*  Apps are configured with settings as shown in the conig object below.
+    Options include setting views directory, static assets directory,
+    and database settings. Default config settings can be seen here:
+    https://docs.turbo360.co */
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+const config = {
+  views: 'views', // Set views directory
+  static: 'public', // Set static assets directory
+  logging: true,
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+  /*  To use the Turbo 360 CMS, from the terminal run
+      $ turbo extend cms
+      then uncomment line 21 below: */
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+  // db: vertex.nedb()
+}
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+vertex.configureApp(app, config)
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+const main = require('./routes/main')
+app.use('/', main)
+app.use('/menu', main)
+app.use('/blog', main)
+/* // import routes
+const index = require('./routes/index')
+const api = require('./routes/api') // sample API Routes
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+// set routes
+app.use('/', index)
+app.use('/api', api) // sample API Routes  */
 
-module.exports = app;
+module.exports = app
